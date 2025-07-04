@@ -34,3 +34,5 @@ sysinfo.txt
 *.xcodeproj
 *.xcworkspace
 *.xcuserdata
+
+*.vs/

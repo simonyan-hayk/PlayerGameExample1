@@ -74,7 +74,7 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
-
+    
     private void FixedUpdate()
     {
         if (gameEnded) return;
