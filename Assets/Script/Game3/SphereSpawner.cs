@@ -25,7 +25,7 @@ public class SphereSpawner : MonoBehaviour
         }
     }
 
-    private Vector3 GetPos()
+    public Vector3 GetPos()
     {
         float x, z;
 

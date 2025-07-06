@@ -1,7 +1,9 @@
 using UnityEngine;
 using TMPro;
 using System.Collections;
+using UnityEngine.SceneManagement;
 using Unity.Mathematics;
+using System;
 
 public class PlayerController : MonoBehaviour
 {
@@ -15,7 +17,7 @@ public class PlayerController : MonoBehaviour
     private bool isOnGround = true, jumpRequested = false;
     [SerializeField] float jumpForce = 10f;
 
-    [SerializeField] TextMeshProUGUI sphereCounterText;
+    [SerializeField] TextMeshProUGUI sphereCounterText, GameOverText, timerText;
     private RectTransform textRect;
     private int sphereCounter = 0;
     private Vector2 startPos = new Vector2(500f, 220f);
@@ -24,6 +26,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private AudioClip winSound;
 
     private bool gameEnded = false;
+    private float timer = 20f;
 
     private void Awake()
     {
@@ -41,7 +44,8 @@ public class PlayerController : MonoBehaviour
         textRect = sphereCounterText.GetComponent<RectTransform>();
         textRect.anchoredPosition = startPos;
 
-        audioSource = GetComponent<AudioSource>();        
+        audioSource = GetComponent<AudioSource>();
+        GameOverText.gameObject.SetActive(false);
     }
 
     private void OnEnable() => _controls.Enable();
@@ -73,11 +77,40 @@ public class PlayerController : MonoBehaviour
                 StartCoroutine(MoveTexttoCenter());
             }
         }
+
+        if (other.CompareTag("Enemy") && !gameEnded)
+        {
+            GameOverText.gameObject.SetActive(true);
+            Destroy(other.gameObject);
+            StartCoroutine(MyPauseRoutine());
+        }
     }
-    
+
+    private IEnumerator MyPauseRoutine()
+    {
+        Time.timeScale = 0f;
+        yield return new WaitForSecondsRealtime(2f);
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    private void Update()
+    {
+        if (gameEnded) return;
+
+        timer -= Time.deltaTime;
+        if (timer < 0) timer = 0;
+
+        timerText.text = $"Time : {timer:F1} second";
+
+        if (timer <= 0)
+            GameOver();
+    }
+
     private void FixedUpdate()
     {
         if (gameEnded) return;
+
         isOnGround = Physics.Raycast(rb.position, Vector3.down, 0.6f);
 
         if (isOnGround)
@@ -108,6 +141,13 @@ public class PlayerController : MonoBehaviour
             textRect.anchoredPosition = Vector2.Lerp(startPos, endPos, t);
             yield return null;
         }
+        Time.timeScale = 0f;
+    }
+
+    public void GameOver()
+    {
+        gameEnded = true;
+        GameOverText.gameObject.SetActive(true);
         Time.timeScale = 0f;
     }
 }
